@@ -446,17 +446,35 @@ Bu bot haqiqiy xabarlar yuboradi! Faqat ruxsat etilgan botlarga xabar yuboring.
         self.app.add_handler(CallbackQueryHandler(self.button_handler))
         self.app.add_handler(CommandHandler('cancel', self.cancel))
     
-    def run(self):
+    async def run_async(self):
         """
-        Botni ishga tushirish
+        Bot uchun async run metodi
         """
         self.setup_handlers()
         print("🤖 Bot ishga tushdi! Polling boshlanmoqda...")
         try:
-            asyncio.run(self.app.run_polling(allowed_updates=Update.ALL_TYPES))
+            await self.app.run_polling(allowed_updates=Update.ALL_TYPES)
         except Exception as e:
             print(f"❌ Bot ishga tushtirishda xatolik: {e}")
             raise
+    
+    def run(self):
+        """
+        Botni to'g'ri event loop bilan ishga tushirish
+        """
+        try:
+            print("🚀 Telegram Bot Ishga Tushmoqda...")
+            print(f"📌 Bot Token: {BOT_TOKEN[:10]}...")
+            # Event loop yaratish va botni jarayonda ishga tushirish
+            asyncio.run(self.run_async())
+        except KeyboardInterrupt:
+            print("\n🛑 Bot to'xtatildi")
+            sys.exit(0)
+        except Exception as e:
+            print(f"❌ Botda xatolik yuz berdi: {e}")
+            import traceback
+            traceback.print_exc()
+            sys.exit(1)
 
 def signal_handler(sig, frame):
     print('\n🛑 Bot to\'xtatildi (SIGTERM/SIGINT)')
@@ -468,13 +486,8 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     
     try:
-        print("🚀 Telegram Bot Ishga Tushmoqda...")
-        print(f"📌 Bot Token: {BOT_TOKEN[:10]}...")
         bot = TelegramBot(BOT_TOKEN, API_ID, API_HASH)
-        asyncio.run(bot.run())
-    except KeyboardInterrupt:
-        print("\n🛑 Bot to'xtatildi")
-        sys.exit(0)
+        bot.run()
     except Exception as e:
         print(f"❌ Botda xatolik yuz berdi: {e}")
         import traceback
