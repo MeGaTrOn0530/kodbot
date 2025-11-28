@@ -452,7 +452,11 @@ Bu bot haqiqiy xabarlar yuboradi! Faqat ruxsat etilgan botlarga xabar yuboring.
         """
         self.setup_handlers()
         print("🤖 Bot ishga tushdi! Polling boshlanmoqda...")
-        self.app.run_polling(allowed_updates=Update.ALL_TYPES)
+        try:
+            asyncio.run(self.app.run_polling(allowed_updates=Update.ALL_TYPES))
+        except Exception as e:
+            print(f"❌ Bot ishga tushtirishda xatolik: {e}")
+            raise
 
 def signal_handler(sig, frame):
     print('\n🛑 Bot to\'xtatildi (SIGTERM/SIGINT)')
@@ -467,7 +471,7 @@ if __name__ == "__main__":
         print("🚀 Telegram Bot Ishga Tushmoqda...")
         print(f"📌 Bot Token: {BOT_TOKEN[:10]}...")
         bot = TelegramBot(BOT_TOKEN, API_ID, API_HASH)
-        bot.run()
+        asyncio.run(bot.run())
     except KeyboardInterrupt:
         print("\n🛑 Bot to'xtatildi")
         sys.exit(0)
