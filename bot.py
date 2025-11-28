@@ -3,17 +3,22 @@
 
 import asyncio
 import random
+import os
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters, ConversationHandler
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError, PhoneCodeInvalidError
 
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+API_ID = int(os.getenv("API_ID", "25381456"))
+API_HASH = os.getenv("API_HASH", "59650da4e918373ca46c417a6ac97526")
+
 # Holatlar
 WAITING_PHONE, WAITING_CODE, WAITING_PASSWORD, WAITING_TARGET, WAITING_MESSAGE, WAITING_COUNT, WAITING_START_CODE, WAITING_END_CODE = range(8)
 
 class TelegramBot:
-    def __init__(self, bot_token):
+    def __init__(self, bot_token, api_id, api_hash):
         """
         Telegram botni boshlash
         """
@@ -23,9 +28,9 @@ class TelegramBot:
         # Foydalanuvchi ma'lumotlari
         self.user_data = {}
         
-        # Default sozlamalar
-        self.API_ID = 25381456
-        self.API_HASH = "59650da4e918373ca46c417a6ac97526"
+        # API sozlamalar
+        self.API_ID = api_id
+        self.API_HASH = api_hash
         
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """
@@ -434,11 +439,10 @@ Bu bot haqiqiy xabarlar yuboradi! Faqat ruxsat etilgan botlarga xabar yuboring.
 
 # BOTNI ISHGA TUSHIRISH
 if __name__ == "__main__":
-    BOT_TOKEN = "8121416656:AAHat27I1RLMkHTOkZm1Vyudl05aIV8KeRo"
-    
-    if BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
-        print("❌ Iltimos, BOT_TOKEN ni kiriting!")
+    if not BOT_TOKEN:
+        print("❌ Iltimos, BOT_TOKEN environment variable'ni o'rnating!")
         print("Bot tokenni @BotFather dan oling: https://t.me/BotFather")
-    else:
-        bot = TelegramBot(BOT_TOKEN)
-        bot.run()
+        exit(1)
+    
+    bot = TelegramBot(BOT_TOKEN, API_ID, API_HASH)
+    bot.run()
