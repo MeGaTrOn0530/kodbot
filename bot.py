@@ -1,18 +1,31 @@
 # TELEGRAM BOT - Xabar Yuborish Boti
-# pip install python-telegram-bot telethon
+# pip install python-telegram-bot telethon python-dotenv
 
 import asyncio
 import random
 import os
+import signal
+import sys
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters, ConversationHandler
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError, PhoneCodeInvalidError
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except:
+    pass
+
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_ID = int(os.getenv("API_ID", "25381456"))
 API_HASH = os.getenv("API_HASH", "59650da4e918373ca46c417a6ac97526")
+
+if not BOT_TOKEN:
+    print("❌ Iltimos, BOT_TOKEN environment variable'ni o'rnating!")
+    print("Bot tokenni @BotFather dan oling: https://t.me/BotFather")
+    sys.exit(1)
 
 # Holatlar
 WAITING_PHONE, WAITING_CODE, WAITING_PASSWORD, WAITING_TARGET, WAITING_MESSAGE, WAITING_COUNT, WAITING_START_CODE, WAITING_END_CODE = range(8)
@@ -23,7 +36,11 @@ class TelegramBot:
         Telegram botni boshlash
         """
         self.bot_token = bot_token
-        self.app = Application.builder().token(bot_token).build()
+        try:
+            self.app = Application.builder().token(bot_token).build()
+        except Exception as e:
+            print(f"❌ Application initialization xatosi: {e}")
+            sys.exit(1)
         
         # Foydalanuvchi ma'lumotlari
         self.user_data = {}
@@ -434,15 +451,28 @@ Bu bot haqiqiy xabarlar yuboradi! Faqat ruxsat etilgan botlarga xabar yuboring.
         Botni ishga tushirish
         """
         self.setup_handlers()
-        print("🤖 Bot ishga tushdi!")
+        print("🤖 Bot ishga tushdi! Polling boshlanmoqda...")
         self.app.run_polling(allowed_updates=Update.ALL_TYPES)
+
+def signal_handler(sig, frame):
+    print('\n🛑 Bot to\'xtatildi (SIGTERM/SIGINT)')
+    sys.exit(0)
 
 # BOTNI ISHGA TUSHIRISH
 if __name__ == "__main__":
-    if not BOT_TOKEN:
-        print("❌ Iltimos, BOT_TOKEN environment variable'ni o'rnating!")
-        print("Bot tokenni @BotFather dan oling: https://t.me/BotFather")
-        exit(1)
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
     
-    bot = TelegramBot(BOT_TOKEN, API_ID, API_HASH)
-    bot.run()
+    try:
+        print("🚀 Telegram Bot Ishga Tushmoqda...")
+        print(f"📌 Bot Token: {BOT_TOKEN[:10]}...")
+        bot = TelegramBot(BOT_TOKEN, API_ID, API_HASH)
+        bot.run()
+    except KeyboardInterrupt:
+        print("\n🛑 Bot to'xtatildi")
+        sys.exit(0)
+    except Exception as e:
+        print(f"❌ Botda xatolik yuz berdi: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
